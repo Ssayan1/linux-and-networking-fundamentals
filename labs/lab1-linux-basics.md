@@ -4,7 +4,7 @@
 Learn navigation, file operations, system monitoring, and basic troubleshooting.
 
 ## Commands Used
-'''bash
+```bash
 mkdir test
 cd test
 touch file.txt

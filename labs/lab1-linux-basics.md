@@ -4,10 +4,12 @@
 Learn navigation, file operations, system monitoring, and basic troubleshooting.
 
 ## Commands Used
+'''bash
 mkdir test
 cd test
 touch file.txt
 ls -l
 pwd
+```
 
 

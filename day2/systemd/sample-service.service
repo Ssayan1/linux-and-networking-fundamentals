@@ -1,0 +1,11 @@
+[Unit]
+Description=Sample SRE Demo Service
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c "while true; do echo 'Service running'; sleep 5; done"
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+- LISTEN      – Server socket is open and waiting for incoming connections
+- ESTABLISHED – Active TCP connection with data transfer possible
+- TIME_WAIT  – Normal state during connection teardown; ensures late packets are handled
+- CLOSE_WAIT – Remote side closed connection, but local application has not yet closed the socket (often indicates application bug)

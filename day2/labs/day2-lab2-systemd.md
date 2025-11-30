@@ -1,18 +1,26 @@
 ## File:
 ```bash
- sample-sre-demo.service (Systemd Unit)
+ sample-sre-demo-advanced.service (Systemd Unit)
 ```
 ### Service File Content:
 --------------------------------------------------------------------
 ```bash
 [Unit]
-Description=Sample SRE Demo Service
+Description=Sample SRE Demo Service (safe demo)
 After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
-ExecStart=/bin/bash -c "while true; do echo 'Service running'; sleep 5; done"
-Restart=always
-User=root
+Type=simple
+ExecStart=/usr/local/bin/sample-sre-demo.sh
+Restart=on-failure
+RestartSec=5
+User=nobody
+RuntimeDirectory=sample-sre-demo
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
@@ -20,108 +28,88 @@ WantedBy=multi-user.target
 --------------------------------------------------------------------
 
 ### Learning:
-- Systemd unit files are used to run services in the background (daemons).
-- `ExecStart` defines the command that systemd will run—here, an infinite loop printing "Service running".
-- `Restart=always` ensures the service auto-recovers if it crashes (important for reliability).
-- `After=network.target` ensures the service starts only after the system has networking available.
-- `WantedBy=multi-user.target` makes this service start automatically at boot.
-- SREs use systemd to manage processes, ensure stability, auto-restart services, and improve system reliability.
+- `StartLimitIntervalSec` + `StartLimitBurst` prevent restart loops (common SRE safety guard).
+- `Type=simple` is used for long-running processes started directly by ExecStart.
+- `ExecStart` points to a separate script (`/usr/local/bin/sample-sre-demo.sh`)—cleaner than inline loops.
+- `Restart=on-failure` auto-restarts only on non-zero exit codes (safer than always).
+- `RestartSec=5` adds a cooldown to avoid rapid restart storms.
+- `User=nobody` drops privileges → recommended for safe, non-root background jobs.
+- `RuntimeDirectory` creates `/run/sample-sre-demo/` automatically for PID files or sockets.
+- `StandardOutput=journal` logs directly to journald (visible via `journalctl -u service`).
+- `LimitNOFILE=4096` raises file descriptor limit—important for servers.
+- This unit file reflects **real-world SRE production practices**: safety, logging, reduced privilege, and recoverability.
 
 ----------------------------------------------->
-## Command: 
+# Day 2 — Lab 2:
 ```bash
-sudo cp day2/systemd/sample-service.service /etc/systemd/system/
+ systemd Service Demo
 ```
-Output:
---------------------------------------------------------------------
-(No output — `cp` runs silently unless there is an error)
---------------------------------------------------------------------
+## Environment
+- WSL Ubuntu (Version X.Y) — run `lsb_release -a`
+- Date: 2025-11-29
+- User: sayan (ran commands with sudo)
 
-## Learning:
-- This command copies your custom systemd unit file into `/etc/systemd/system/`, which is where user-defined services are stored on Linux.
-- `sudo` is required because `/etc/systemd/system/` is a protected system directory.
-- After copying a service file, you **must reload systemd** so it recognizes the new unit.
-- This is the standard workflow SREs use when installing or updating system service definitions.
+## Files created
+- /etc/systemd/system/sample-sre-demo.service
+- /usr/local/bin/sample-sre-demo.sh
 
------------------------------------------------>
-## Commands:
-```bash
+## Unit file (production-style)
+
+## Service script
+
+## Commands executed
 sudo systemctl daemon-reload
-sudo systemctl enable sample-service
-sudo systemctl start sample-service
-```
-Output:
---------------------------------------------------------------------
-(No output — these systemctl commands run silently unless there is an error)
---------------------------------------------------------------------
+sudo systemctl enable sample-sre-demo
+sudo systemctl start sample-sre-demo
+sudo systemctl status sample-sre-demo --no-pager
+sudo journalctl -u sample-sre-demo -n 50 --no-pager
 
-## Learning:
-- `systemctl daemon-reload` refreshes systemd so it recognizes new or updated service files.
-- `systemctl enable sample-service` enables the service to start automatically at system boot.
-- `systemctl start sample-service` starts the service immediately without needing a reboot.
-- These three steps are required **every time** you add, modify, or install a systemd service.
-- This workflow is essential for SREs when deploying automation, background services, or agents.
------------------------------------------------>
+## Output (paste real output)
 
-## Command:
-```bash
- systemctl status sample-service
-```
-Output:
+## Observations & Learnings
+- Explanation why we used `Restart=on-failure` vs `always`
+- Why non-root user matters
+- How `StartLimitBurst` prevents crash loops
+- How to debug (journalctl, systemctl status, `ps`/`strace`)
+
+## Next steps (what I'd do in production)
+- Create a dedicated non-privileged user/group (e.g., `svc-demo`) and drop capabilities
+- Add `ExecStartPre` for checks, `ExecStop` for graceful shutdown
+- Add `WatchdogSec` and `NotifyAccess=all` for services that can signal liveness
+
+## Troubleshooting Commands for systemd Service
+
+### 1. Check service status (detailed output)
 --------------------------------------------------------------------
-```bah
-● sample-service.service - Sample SRE Demo Service
-     Loaded: loaded (/etc/systemd/system/sample-service.service; enabled)
-     Active: active (running) since Sat 2025-11-29
-   Main PID: 6266 (bash)
-      Tasks: 2 (limit: 4535)
-     Memory: 720.0K (peak: 1.0M)
-        CPU: 9ms
-     CGroup: /system.slice/sample-service.service
-             ├─6266 /bin/bash -c "while true; do echo 'Service running'; sleep 5; done"
-             └─6269 sleep 5
-
-Nov 29 04:43:57 sayan systemd[1]: Started Sample SRE Demo Service.
-Nov 29 04:43:57 sayan bash[6266]: Service running
-Nov 29 04:44:02 sayan bash[6266]: Service running
-Nov 29 04:44:07 sayan bash[6266]: Service running
-```
+sudo systemctl status sample-sre-demo -l
 --------------------------------------------------------------------
 
-## Learning:
-- The service is **active (running)**, meaning systemd successfully started it.
-- `Loaded: loaded` confirms the service file is correctly installed under `/etc/systemd/system/`.
-- `Main PID: 6266` shows the actual process started by systemd.
-- `CGroup` details show the bash loop continuously printing “Service running”.
-- Repeated log lines confirm the service executes the loop every 5 seconds.
-- This verifies that your systemd service works reliably and restarts on boot as expected—core SRE knowledge.
+### Learning:
+- Shows service status, errors, exit codes, and recent logs.
+- `-l` prints full lines (no truncation).
+- First command to run when a service fails to start.
 
 
-
-## Command:
-```bash
- journalctl -u sample-service -f
-```
-Output:
+### 2. View logs from the current boot (last 200 lines)
 --------------------------------------------------------------------
-```bash
-Nov 29 04:52:39 sayan bash[6266]: Service running
-Nov 29 04:52:44 sayan bash[6266]: Service running
-Nov 29 04:52:49 sayan bash[6266]: Service running
-Nov 29 04:52:54 sayan bash[6266]: Service running
-Nov 29 04:52:59 sayan bash[6266]: Service running
-Nov 29 04:53:05 sayan bash[6266]: Service running
-Nov 29 04:53:10 sayan bash[6266]: Service running
-Nov 29 04:53:15 sayan bash[6266]: Service running
-Nov 29 04:53:20 sayan bash[6266]: Service running
-Nov 29 04:53:25 sayan bash[6266]: Service running
-```
+sudo journalctl -u sample-sre-demo -b --no-pager | tail -n 200
 --------------------------------------------------------------------
 
-## Learning:
-- `journalctl -u <service> -f` shows **real-time logs** for a systemd-managed service.
-- The repeating "Service running" lines confirm that the loop inside your systemd service executes every 5 seconds.
-- This command is equivalent to `tail -f` but for systemd’s centralized logging system.
-- SREs use real-time journal logs during debugging, incident response, and service verification.
-- Continuous logging confirms the service is healthy, active, and not crashing.
+### Learning:
+- Fetches logs only for the current boot (`-b`).
+- `--no-pager` prevents interactive scrolling.
+- `tail -n 200` shows the most recent logs for fast debugging.
+- Useful for detecting startup crashes, permission issues, missing files, etc.
+
+
+### 3. Manually run the script as the service user
+--------------------------------------------------------------------
+sudo -u nobody /usr/local/bin/sample-sre-demo.sh
+--------------------------------------------------------------------
+
+### Learning:
+- Runs the same script systemd uses, but outside of systemd.
+- Helps identify permission issues, missing environment variables, or script syntax errors.
+- If it fails here, the problem is in the script — not systemd.
+- SRE best practice: **Always test service scripts manually as their target user.**
 

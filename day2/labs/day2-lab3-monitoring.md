@@ -4,8 +4,13 @@
 ```
 Output:
 --------------------------------------------------------------------
-htop is an interactive command and does not produce standard text output.
-Use 'htop -b -n 1' for non-interactive output.
+Uptime output:
+ 05:21:34 up 10:05,  1 user,  load average: 0.00, 0.00, 0.00
+
+Interpretation:
+- Load averages 1/5/15 min all zero => idle system.
+- MiB Mem shows 3133MB free, 539MB used, so memory pressure is low.
+
 --------------------------------------------------------------------
 
 ## Learning:
@@ -14,6 +19,29 @@ Use 'htop -b -n 1' for non-interactive output.
 - Allows sorting processes by CPU, memory, PID, user, etc.
 - Provides details like threads, process tree, and system load averages.
 - SREs use `htop` for live performance analysis and troubleshooting high CPU/memory issues.
+
+### Understanding Load Average (Simple Explanation)
+- Load average shows how many processes are either **running** or **waiting for CPU**.
+- It is displayed as three numbers: **1-minute, 5-minute, 15-minute** averages.
+- For a 4-core system:
+  - Load 4.00 = fully busy  
+  - Load < 4.00 = healthy  
+  - Load > 4.00 = CPU saturation  
+- Example: `0.00, 0.00, 0.00` means the system is idle with no CPU pressure.
+
+### Understanding Memory Numbers (free -m)
+- **total**: total physical RAM available to the system.
+- **used**: memory actively used by applications and the kernel.
+- **free**: RAM not used at all (this number is usually small in Linux).
+- **buff/cache**: memory Linux uses to cache files and accelerate I/O (this is good).
+- **available**: the *real* amount of memory that applications can still use safely.
+- **swap**: disk-based memory used when RAM is full — if swap usage grows, the system is under memory pressure.
+
+### Quick SRE Interpretation
+- High **load average** + high **CPU usage** = CPU bottleneck.
+- Low **available memory** + non-zero **swap used** = memory pressure.
+- High **buff/cache** is normal — Linux caches aggressively.
+- `available` is the key metric: if it's large, your system is healthy.
 
 ----------------------------------------------------->
 ## Command:
@@ -223,4 +251,104 @@ Swap:           1024           0        1024
 - No memory issues.
 - No swap usage → excellent for performance.
 - Plenty of available RAM → no risk of out-of-memory (OOM) kill.
+
+--------------------------------------------------------------------
+## Commands: Install and Run Sample SRE Demo Service
+
+### 1. Create the service script
+--------------------------------------------------------------------
+
+```bash
+cat > /tmp/sample-sre-demo.sh <<'EOF'
+#!/bin/bash
+while true; do
+  echo "$(date --iso-8601=seconds) - Service running"
+  sleep 5
+done
+EOF
+```
+--------------------------------------------------------------------
+
+### 2. Install script into /usr/local/bin with correct permissions
+--------------------------------------------------------------------
+```bash
+sudo install -m 755 /tmp/sample-sre-demo.sh /usr/local/bin/sample-sre-demo.sh
+```
+--------------------------------------------------------------------
+
+### Learning:
+- `install -m 755` copies the script and ensures correct executable permissions.
+- Scripts in `/usr/local/bin` follow Linux FHS best practices.
+
+
+### 3. Create improved systemd unit file
+--------------------------------------------------------------------
+```bash
+cat > /tmp/sample-sre-demo.service <<'EOF'
+[Unit]
+Description=Sample SRE Demo Service (safe demo)
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/sample-sre-demo.sh
+Restart=on-failure
+RestartSec=5
+User=nobody
+RuntimeDirectory=sample-sre-demo
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+--------------------------------------------------------------------
+
+### 4. Move the service into systemd directory
+--------------------------------------------------------------------
+```bash
+sudo cp /tmp/sample-sre-demo.service /etc/systemd/system/sample-sre-demo.service
+```
+--------------------------------------------------------------------
+
+
+### 5. Reload systemd, enable service, and start it immediately
+--------------------------------------------------------------------
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now sample-sre-demo
+```
+--------------------------------------------------------------------
+
+### Learning:
+- `daemon-reload` tells systemd to re-read new unit files.
+- `enable --now` enables at boot **and** starts immediately.
+
+
+### 6. Check service status
+--------------------------------------------------------------------
+```bash
+sudo systemctl status sample-sre-demo --no-pager
+```
+--------------------------------------------------------------------
+
+
+### 7. View last 50 log lines
+--------------------------------------------------------------------
+```bash
+sudo journalctl -u sample-sre-demo -n 50 --no-pager
+```
+--------------------------------------------------------------------
+
+## What This Workflow Demonstrates (SRE-Level Learning)
+- Creating system services safely and reproducibly.
+- Using systemd with automatic restarts and throttled restart limits.
+- Running services as **non-root users** (`nobody`) for security.
+- Logging through `journalctl` for observability.
+- Packaging scripts in `/usr/local/bin` and units in `/etc/systemd/system`.
+- Automating deployments using `cat <<EOF` patterns — widely used in SRE automation, Ansible, Terraform, and Kubernetes bootstrap scripts.
 

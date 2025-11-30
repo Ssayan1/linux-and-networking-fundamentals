@@ -1,11 +1,19 @@
 [Unit]
-Description=Sample SRE Demo Service
+Description=Sample SRE Demo Service (safe demo)
 After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
-ExecStart=/bin/bash -c "while true; do echo 'Service running'; sleep 5; done"
-Restart=always
-User=root
+Type=simple
+ExecStart=/usr/local/bin/sample-sre-demo.sh
+Restart=on-failure
+RestartSec=5
+User=nobody
+RuntimeDirectory=sample-sre-demo
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,3 @@
+PID 1234 → 98% CPU
+Command: yes
+Status: R+ (running)

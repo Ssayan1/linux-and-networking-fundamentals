@@ -1,0 +1,4 @@
+100% write()
+60000 calls
+~20 usec per call
+This pattern indicates a tight syscall loop.

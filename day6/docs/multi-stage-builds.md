@@ -25,6 +25,7 @@ Benefits:
 
 ## 🔧 Multi-Stage Build (ASCII Diagram)
 
+```
 +-------------------------+       +---------------------------+
 |   Stage 1: Builder      |       |   Stage 2: Runtime        |
 +-------------------------+       +---------------------------+
@@ -32,5 +33,5 @@ Benefits:
 | RUN pip install ...     |       | COPY --from=builder app   |
 | Produces binary         | ----> | Final lightweight image   |
 +-------------------------+       +---------------------------+
-
+```
 

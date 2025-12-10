@@ -13,6 +13,15 @@ This module teaches how containers are built, optimized, secured, and deployed i
 - How production teams optimize images  
 - Pushing secure images to Docker Hub
 
+
+## 📁 All work is inside: **day6/**  
+Includes:
+- docs/ — complete step-by-step learning  
+- examples/ — python-app, node-app, multistage, alpine vs debian  
+- labs/ — 6 hands-on exercises  
+- tools/ — build, history, inspect, dive, trivy  
+
+
 ## 📁 Repository Structure
 
 ```

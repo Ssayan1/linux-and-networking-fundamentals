@@ -147,4 +147,10 @@ Professional production example used in real microservices.
 
 ---
 
+## 🔍 Visual: Multi-Stage Build Diagram
+
+Below is the visual representation stored in `day6/assets/multi-stage.svg`:
+
+![Multi-Stage Build Diagram](./assets/multi-stage.svg)
+
 

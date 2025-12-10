@@ -24,3 +24,39 @@ docker history myimage
 - Smaller images  
 - Efficient CI/CD  
 - Less storage required  
+
+## 📘 How Docker Image Layers Work (ASCII Diagram)
+
+```
++-------------------------------+
+|        Final Image            |
+| (Flattened stack of layers)   |
++-------------------------------+
+            ▲
+            |
++-------------------------------+
+| CMD / ENTRYPOINT Layer        |
++-------------------------------+
+            ▲
++-------------------------------+
+| Application Code Layer        |
+|  COPY . /app                  |
++-------------------------------+
+            ▲
++-------------------------------+
+| Dependencies Layer            |
+|  RUN pip install / npm ci     |
++-------------------------------+
+            ▲
++-------------------------------+
+| Base Layer (python:3.11-slim) |
++-------------------------------+
+
+```
+
+
+### Layer Rules
+- Layers are immutable  
+- Only changed layers rebuild  
+- Ordering matters for caching  
+- Multi-stage builds produce cleaner final layers

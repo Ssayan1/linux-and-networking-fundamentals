@@ -20,3 +20,17 @@ Benefits:
 - Smaller image size  
 - No build tools in final image  
 - Fewer attack surface
+
+---
+
+## 🔧 Multi-Stage Build (ASCII Diagram)
+
++-------------------------+       +---------------------------+
+|   Stage 1: Builder      |       |   Stage 2: Runtime        |
++-------------------------+       +---------------------------+
+| RUN build tools         |       | FROM python:3.11-slim     |
+| RUN pip install ...     |       | COPY --from=builder app   |
+| Produces binary         | ----> | Final lightweight image   |
++-------------------------+       +---------------------------+
+
+

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="230">
+  <rect x="10" y="10" width="350" height="80" fill="#eef6ff" stroke="#4682b4" rx="6"/>
+  <text x="20" y="40" font-family="Arial" font-size="16">Builder Stage</text>
+  <text x="20" y="65" font-family="Arial" font-size="13">Compiles app, installs dependencies</text>
+
+  <rect x="460" y="10" width="350" height="80" fill="#eaffea" stroke="#2e8b57" rx="6"/>
+  <text x="470" y="40" font-family="Arial" font-size="16">Runtime Stage</text>
+  <text x="470" y="65" font-family="Arial" font-size="13">Small clean image → final output</text>
+
+  <line x1="360" y1="50" x2="460" y2="50" stroke="#888" stroke-dasharray="5,5" />
+  <text x="365" y="70" font-family="Arial" font-size="12">COPY --from=builder /app /app</text>
+</svg>

@@ -1,0 +1,24 @@
+services:
+  api:
+    build: .
+    deploy:
+      replicas: 3
+    expose:
+      - "5001"       # <--- INTERNAL port exposed to lb
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+
+    restart: always
+
+  lb:
+    image: nginx:alpine
+    ports:
+      - "5001:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api

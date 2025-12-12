@@ -1,0 +1,4 @@
+frontend_net         backend_net                      tracing_net
+┌─────────┐        ┌─────────┐        ┌───────────────┐
+│Frontend │──HTTP──▶  API    │──HTTP──▶ Logger Sidecar│──UDP──▶ Jaeger
+└─────────┘        └─────────┘        └───────────────┘

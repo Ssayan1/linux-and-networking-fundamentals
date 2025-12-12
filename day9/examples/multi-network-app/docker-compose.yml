@@ -1,0 +1,39 @@
+version: "3.9"
+
+networks:
+  frontend_net:
+  backend_net:
+
+services:
+  frontend:
+    build: ./frontend
+    networks:
+      - frontend_net
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  api:
+    build: ./api
+    networks:
+      - frontend_net
+      - backend_net
+    environment:
+      - LOGGER_HOST=logger
+      - SERVICE_NAME=api-service
+
+  logger:
+    build: ./logger-sidecar
+    networks:
+      - backend_net
+    environment:
+      - SERVICE_NAME=logger
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.39
+    ports:
+      - "16686:16686"
+    networks:
+      - backend_net
+

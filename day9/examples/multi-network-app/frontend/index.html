@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Day 9 Multi Network App</title>
+</head>
+<body>
+    <h1>Frontend Service</h1>
+    <p>This frontend talks to the API across Docker networks.</p>
+
+    <h3>Test API Connectivity:</h3>
+    <a href="/api">Click here</a> (proxied via nginx)
+
+    <script>
+        fetch("http://localhost:5001/")
+            .then(r => r.json())
+            .then(data => console.log("API Response:", data));
+    </script>
+</body>
+</html>

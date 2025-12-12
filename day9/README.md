@@ -131,6 +131,22 @@ These tools make debugging faster, repeatable, and production-ready.
 
 ---
 
+## 🗺 Network Diagram
+
+Include or reference your diagram located at:
+
+```bash
+day9/examples/multi-network-app/network-diagram.png
+```
+
+This visual explains:
+
+- network segmentation
+- container connectivity
+- routing flow
+- tracing path
+
+---
 ## 🌐 Example System: Multi-Network App 
 
 Components

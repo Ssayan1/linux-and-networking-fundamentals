@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Frontend</title>
+</head>
+<body>
+  <h1>Frontend Service</h1>
+  <p>Backend says:</p>
+  <pre id="output"></pre>
+
+<script>
+fetch("/api")
+  .then(r => r.text())
+  .then(t => document.getElementById("output").innerText = t);
+</script>
+</body>
+</html>

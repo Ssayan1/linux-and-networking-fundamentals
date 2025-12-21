@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1        # update 1 container at a time
+        delay: 5s             # wait 5 seconds before updating next
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure

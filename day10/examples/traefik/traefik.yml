@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10 # Use a specific, recent version
+    command:
+      - --api.insecure=true # For dashboard access, useful for testing
+      - --providers.docker=true
+      - --providers.docker.swarmmode=true # CRITICAL for Swarm deployments
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --entrypoints.web.address=:80
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host # Use 'host' mode for entrypoints
+      - target: 8080 # For the Traefik dashboard/API
+        published: 8080
+        protocol: tcp
+        mode: host
+    volumes:
+      # CRITICAL: Mount the Docker socket for service discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./traefik.yml:/etc/traefik/traefik.yml:ro # If you have dynamic configuration here
+    deploy:
+      mode: global # Recommended to run Traefik on every node
+      placement:
+        constraints:
+          - node.role == manager # Or only on manager nodes for simplicity
+    networks:
+      - traefik_public
+
+networks:
+  traefik_public:
+    external: true # Or define it as a simple overlay network if you don't use it elsewhere

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple 3 Tier App</title>
+</head>
+<body>
+    <h1>Frontend Service</h1>
+    <p>This calls the backend API through Docker Swarm.</p>
+
+    <button onclick="callApi()">Call API</button>
+
+    <pre id="output"></pre>
+
+<script>
+function callApi() {
+    fetch("/api")
+        .then(r => r.text())
+        .then(t => document.getElementById("output").innerText = t)
+        .catch(e => document.getElementById("output").innerText = 'Error: ' + e);
+}
+</script>
+
+</body>
+</html>

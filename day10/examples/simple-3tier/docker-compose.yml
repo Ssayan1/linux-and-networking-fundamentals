@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+
+  frontend:
+    image: simple_frontend:latest
+    ports:
+      - "8080:80"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - appnet
+
+  api:
+    image: simple_api:latest
+    environment:
+      - REDIS_HOST=redis
+    ports:
+      - "5000:5000"   # <-- EXPOSE API SO YOU CAN TEST IT DIRECTLY
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - appnet
+
+  redis:
+    image: redis:alpine
+    deploy:
+      replicas: 1
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: overlay
